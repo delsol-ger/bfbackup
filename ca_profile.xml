@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<Maintainer>
+  <Profile>BFBackup: incremental backups between Unraid (or any Linux) servers, stored as plain files.</Profile>
+  <Icon>https://raw.githubusercontent.com/delsol-ger/bfbackup/main/CI/icon/icon-512.png</Icon>
+  <WebPage>https://github.com/delsol-ger/bfbackup</WebPage>
+  <Forum>https://github.com/delsol-ger/bfbackup/issues</Forum>
+</Maintainer>

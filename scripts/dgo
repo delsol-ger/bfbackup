@@ -1,0 +1,10 @@
+#!/bin/sh
+# Runs the Go toolchain inside Docker, so no local Go install is needed.
+# Usage: scripts/dgo test ./...
+set -e
+cd "$(dirname "$0")/.."
+exec docker run --rm -i \
+  -v "$PWD":/src -w /src \
+  -v bfb-gomod:/go/pkg/mod -v bfb-gocache:/root/.cache/go-build \
+  -e CGO_ENABLED="${CGO_ENABLED:-0}" -e GOFLAGS="${GOFLAGS:-}" \
+  "${GO_IMAGE:-golang:1.26-alpine}" go "$@"

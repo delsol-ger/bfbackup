@@ -1,0 +1,29 @@
+# Local test setup: one controller and one peer on this machine.
+#   make dev-up                      start the controller (the peer waits for a token)
+#   open http://localhost:7700       set a password, add a peer, copy its token
+#   PEER_TOKEN=bfb1.... docker compose up -d peer
+services:
+  controller:
+    image: bfbackup:latest
+    command: ["controller"]
+    ports:
+      - "7700:7700"
+      - "7701:7701"
+    environment:
+      BFB_ROOTS: /mnt
+    volumes:
+      - ./testdata/controller/config:/config
+      - ./testdata/controller/data:/mnt/data
+
+  peer:
+    image: bfbackup:latest
+    command: ["peer"]
+    profiles: ["peer"]
+    environment:
+      BFB_CONTROLLER: controller:7701
+      BFB_TOKEN: ${PEER_TOKEN:-}
+      BFB_ROOTS: /mnt
+    volumes:
+      - ./testdata/peer/config:/config
+      - ./testdata/peer/backup:/mnt/backup
+    restart: unless-stopped

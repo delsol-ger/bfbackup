@@ -1,0 +1,41 @@
+name: Bug report
+description: Something does not work as described.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security problems: please don't open an issue, see SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: BFBackup version
+      description: Controller version (Settings page) and peer versions (Peers page).
+      placeholder: "controller 1.15.0, peers 1.15.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: host
+    attributes:
+      label: Host
+      options:
+        - Unraid (App Store template)
+        - Unraid (other)
+        - Other Linux with Docker
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: Steps to reproduce help a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        Container log, the run's file log (run page), or for connection problems
+        the peer's connection.log. Remove host names or paths you don't want to share.
+      render: text

@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>bfbackup-controller</Name>
+  <Repository>delsolger/bfbackup:latest</Repository>
+  <Registry>https://hub.docker.com/r/delsolger/bfbackup</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/delsol-ger/bfbackup/issues</Support>
+  <Project>https://github.com/delsol-ger/bfbackup</Project>
+  <Overview>BFBackup controller: web UI, schedules and database. Backs up folders incrementally and fast over the LAN to other servers (running the bfbackup-peer container), to local disks or to USB drives. Backups are plain files and folders on the target: no repository, no archive format, you can open and copy them without BFBackup. You need one controller and, for backups to other servers, one bfbackup-peer per server. Peers connect to port 7701 with a token you create in the web UI. Made for Unraid, works on any Linux Docker host.</Overview>
+  <Changes>See https://github.com/delsol-ger/bfbackup/blob/main/CHANGELOG.md. Each release says whether the peers need the update too.</Changes>
+  <Category>Backup: Tools:System</Category>
+  <WebUI>http://[IP]:[PORT:7700]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/delsol-ger/bfbackup/main/public-release/unraid/bfbackup-controller.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/delsol-ger/bfbackup/main/CI/icon/icon-512.png</Icon>
+  <ExtraParams>--stop-timeout 30</ExtraParams>
+  <PostArgs>controller</PostArgs>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires>For backups to another server, install bfbackup-peer there.</Requires>
+  <Config Name="Web UI port" Target="7700" Default="7700" Mode="tcp" Description="Web interface. Keep it in your LAN or VPN, never forward it to the internet." Type="Port" Display="always" Required="true" Mask="false">7700</Config>
+  <Config Name="Peer port" Target="7701" Default="7701" Mode="tcp" Description="Peers connect here. Must be reachable from every peer." Type="Port" Display="always" Required="true" Mask="false">7701</Config>
+  <Config Name="Appdata" Target="/config" Default="/mnt/user/appdata/bfbackup" Mode="rw" Description="Database, hook scripts (hooks/), database snapshots (db-backups/)." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/bfbackup</Config>
+  <Config Name="Storage" Target="/mnt" Default="/mnt" Mode="rw,slave" Description="Shares to back up from, or to restore and store backups into (/mnt/user), and USB or unassigned disks (/mnt/disks). Same paths as on the host, so paths in the UI match Unraid. The single array disks and pools are only used to move deleted files into the trash without copying; they are never shown. Use 'Allowed roots' to narrow what BFBackup may touch." Type="Path" Display="always" Required="true" Mask="false">/mnt</Config>
+  <Config Name="Allowed roots" Target="BFB_ROOTS" Default="/mnt" Mode="" Description="Comma-separated folders inside the container BFBackup may read and write. Nothing outside is reachable, symlinks included." Type="Variable" Display="advanced" Required="true" Mask="false">/mnt</Config>
+  <Config Name="Owner UID for written files" Target="BFB_UID" Default="99" Mode="" Description="Files and folders BFBackup creates get this owner (99 = nobody on Unraid). Empty: leave as root." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+  <Config Name="Owner GID for written files" Target="BFB_GID" Default="100" Mode="" Description="100 = users on Unraid." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+  <Config Name="Initial admin password" Target="BFB_ADMIN_PASSWORD" Default="" Mode="" Description="Optional. Only used when no password is set yet; otherwise you choose it on first visit of the web UI." Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+  <Config Name="Peer transport" Target="BFB_TRANSPORT" Default="auto" Mode="" Description="auto: accept encrypted and unencrypted peers (older versions, BFB_TRANSPORT=plain). tls: refuse unencrypted peers." Type="Variable" Display="advanced" Required="false" Mask="false">auto</Config>
+  <Config Name="Log level" Target="BFB_LOG_LEVEL" Default="info" Mode="" Description="debug, info, warn or error." Type="Variable" Display="advanced" Required="false" Mask="false">info</Config>
+</Container>

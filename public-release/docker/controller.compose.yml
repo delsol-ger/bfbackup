@@ -1,0 +1,40 @@
+# BFBackup controller on any Linux Docker host.
+#   docker compose -f controller.compose.yml up -d
+#   open http://<host>:7700 and choose the admin password
+#
+# Map whole host folders at the same path (like Unraid's /mnt → /mnt), so
+# paths in the UI match the host. Map few, large folders: every file system
+# mounted *below* an allowed root counts as a possible USB drive on the
+# "USB drives" page.
+services:
+  bfbackup-controller:
+    image: delsolger/bfbackup:latest
+    container_name: bfbackup-controller
+    command: ["controller"]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    ports:
+      - "7700:7700"   # web UI: LAN or VPN only, never forward it to the internet
+      - "7701:7701"   # peers connect here
+    environment:
+      TZ: Europe/Berlin          # schedules use this time zone
+      BFB_ROOTS: /srv,/media     # the only folders BFBackup may touch
+      BFB_UID: "1000"            # owner of files BFBackup writes (empty: root)
+      BFB_GID: "1000"
+      # BFB_ADMIN_PASSWORD: change-me   # optional, only used on first start
+      # BFB_TRANSPORT: tls              # refuse unencrypted peers
+    volumes:
+      - ./config:/config         # database, hooks/, db-backups/
+      # Data to back up and local backup targets.
+      - type: bind
+        source: /srv
+        target: /srv
+        bind:
+          propagation: rslave
+      # USB drives (auto-mounted below /media): rslave makes drives plugged
+      # in later show up inside the container.
+      - type: bind
+        source: /media
+        target: /media
+        bind:
+          propagation: rslave

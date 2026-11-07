@@ -1,0 +1,26 @@
+# BFBackup peer on any Linux Docker host.
+# On the controller's web UI: Peers → Add peer → copy the token. Then:
+#   BFB_TOKEN=bfb1.... docker compose -f peer.compose.yml up -d
+# The peer connects out to the controller; no ports to open here.
+services:
+  bfbackup-peer:
+    image: delsolger/bfbackup:latest
+    container_name: bfbackup-peer
+    command: ["peer"]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    environment:
+      TZ: Europe/Berlin
+      BFB_CONTROLLER: 192.168.1.10   # controller address, optionally :port (default 7701)
+      BFB_TOKEN: ${BFB_TOKEN:?set BFB_TOKEN to the token from the controller}
+      BFB_ROOTS: /srv/backup         # what the controller may see on this server
+      BFB_UID: "1000"
+      BFB_GID: "1000"
+      # BFB_TRANSPORT: plain         # unencrypted, only for weak CPUs on fast links
+    volumes:
+      - ./config:/config             # hooks/ and connection.log
+      - type: bind                   # where backups are stored
+        source: /srv/backup
+        target: /srv/backup
+        bind:
+          propagation: rslave

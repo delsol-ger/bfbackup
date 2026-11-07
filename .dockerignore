@@ -1,0 +1,11 @@
+.git
+.github
+.claude
+private
+public-release
+testdata
+dist
+CI
+docs
+scripts
+*.md

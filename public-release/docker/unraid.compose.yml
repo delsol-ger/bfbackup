@@ -1,0 +1,27 @@
+# BFBackup controller on Unraid with the Compose Manager plugin, the same
+# setup as the App Store template. For a peer, change command to ["peer"],
+# drop the ports and set BFB_CONTROLLER and BFB_TOKEN.
+services:
+  bfbackup-controller:
+    image: delsolger/bfbackup:latest
+    container_name: bfbackup-controller
+    command: ["controller"]
+    restart: unless-stopped
+    stop_grace_period: 30s
+    ports:
+      - "7700:7700"
+      - "7701:7701"
+    environment:
+      BFB_ROOTS: /mnt
+      BFB_UID: "99"    # nobody
+      BFB_GID: "100"   # users
+    volumes:
+      - /mnt/user/appdata/bfbackup:/config
+      - type: bind
+        source: /mnt
+        target: /mnt
+        bind:
+          propagation: rslave
+    labels:
+      net.unraid.docker.webui: "http://[IP]:[PORT:7700]/"
+      net.unraid.docker.icon: "https://raw.githubusercontent.com/delsol-ger/bfbackup/main/CI/icon/icon-512.png"

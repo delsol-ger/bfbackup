@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BFBackup</title>
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171b23" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BFBackup">
+<script src="theme.js?v=1"></script>
+<link rel="stylesheet" href="app.css?v=13">
+</head>
+<body>
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand"><img src="favicon.svg" alt="" width="28" height="28"> BFBackup</div>
+    <nav id="nav">
+      <a href="#/" data-route="dashboard">Dashboard</a>
+      <a href="#/jobs" data-route="jobs">Backup jobs</a>
+      <a href="#/runs" data-route="runs">Backup history</a>
+      <a href="#/nodes" data-route="nodes">Peers</a>
+      <a href="#/drives" data-route="drives">USB drives</a>
+      <a href="#/stats" data-route="stats">Statistics</a>
+      <a href="#/settings" data-route="settings">Settings</a>
+      <a href="#/logs" data-route="logs">Logs</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="foot-info"><span id="version"></span><span class="credit">Created by DelSol</span></div>
+      <button type="button" class="link" id="logout">Log out</button>
+    </div>
+  </aside>
+  <main id="main"></main>
+  <!-- phones: bottom tab bar instead of the sidebar -->
+  <nav id="tabbar" class="tabbar hidden" aria-label="Main">
+    <a href="#/" data-route="dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3.5l8.5 7V20a1 1 0 0 1-1 1H15v-6H9v6H4.5a1 1 0 0 1-1-1z"/></svg>Home</a>
+    <a href="#/jobs" data-route="jobs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3 7.5 12 12l9-4.5z M3 12l9 4.5 9-4.5 M3 16.5 12 21l9-4.5"/></svg>Jobs</a>
+    <a href="#/runs" data-route="runs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1 M3.5 4v4h4 M12 7.5V12l3 2"/></svg>History</a>
+    <a href="#/nodes" data-route="nodes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v6H4z M4 14h16v6H4z M8 7h.01 M8 17h.01"/></svg>Peers</a>
+    <button type="button" id="more" data-routes="drives stats settings logs" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="dots" d="M5 12h.01 M12 12h.01 M19 12h.01"/></svg>More</button>
+  </nav>
+</div>
+<div id="toasts" aria-live="polite"></div>
+<script src="app.js?v=23"></script>
+</body>
+</html>

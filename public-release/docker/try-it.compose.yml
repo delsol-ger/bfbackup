@@ -1,0 +1,32 @@
+# Try BFBackup on one machine: a controller and a peer side by side.
+#   mkdir -p try/controller-data/Photos && cp some-files try/controller-data/Photos/
+#   docker compose -f try-it.compose.yml up -d bfbackup-controller
+#   open http://localhost:7700, set a password, Peers → Add peer "demo-peer",
+#   copy the token, then:
+#   BFB_TOKEN=bfb1.... docker compose -f try-it.compose.yml --profile peer up -d
+# Create a job from /data/Photos on the controller to /data on demo-peer.
+# The backup shows up as plain files in try/peer-data/.
+services:
+  bfbackup-controller:
+    image: delsolger/bfbackup:latest
+    command: ["controller"]
+    ports:
+      - "7700:7700"
+    environment:
+      BFB_ROOTS: /data
+    volumes:
+      - ./try/controller-config:/config
+      - ./try/controller-data:/data
+
+  bfbackup-peer:
+    image: delsolger/bfbackup:latest
+    command: ["peer"]
+    profiles: ["peer"]
+    restart: unless-stopped
+    environment:
+      BFB_CONTROLLER: bfbackup-controller:7701
+      BFB_TOKEN: ${BFB_TOKEN:-}
+      BFB_ROOTS: /data
+    volumes:
+      - ./try/peer-config:/config
+      - ./try/peer-data:/data

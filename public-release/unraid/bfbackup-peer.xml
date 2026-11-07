@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>bfbackup-peer</Name>
+  <Repository>delsolger/bfbackup:latest</Repository>
+  <Registry>https://hub.docker.com/r/delsolger/bfbackup</Registry>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/delsol-ger/bfbackup/issues</Support>
+  <Project>https://github.com/delsol-ger/bfbackup</Project>
+  <Overview>BFBackup peer: receives backups from (or sends files to) a BFBackup controller (install bfbackup-controller on one server first). Needs only the controller address and the token from the controller's web UI (Peers, Add peer). No ports to open on this server; the peer connects out to the controller. Backups land as plain files and folders: no repository, no archive format. Made for Unraid, works on any Linux Docker host.</Overview>
+  <Changes>See https://github.com/delsol-ger/bfbackup/blob/main/CHANGELOG.md. Each release says whether the peers need the update too.</Changes>
+  <Category>Backup: Tools:System</Category>
+  <WebUI/>
+  <TemplateURL>https://raw.githubusercontent.com/delsol-ger/bfbackup/main/public-release/unraid/bfbackup-peer.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/delsol-ger/bfbackup/main/CI/icon/icon-512.png</Icon>
+  <ExtraParams>--stop-timeout 30</ExtraParams>
+  <PostArgs>peer</PostArgs>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires>A BFBackup controller (bfbackup-controller) on another server.</Requires>
+  <Config Name="Controller address" Target="BFB_CONTROLLER" Default="" Mode="" Description="IP or host name of the controller, optionally with :port (default 7701). Example: 192.168.1.10" Type="Variable" Display="always" Required="true" Mask="false"></Config>
+  <Config Name="Token" Target="BFB_TOKEN" Default="" Mode="" Description="Token from the controller web UI (Peers, Add peer). Starts with bfb1." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Appdata" Target="/config" Default="/mnt/user/appdata/bfbackup-peer" Mode="rw" Description="Hook scripts (hooks/) and connection.log, which shows every connection attempt to the controller." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/bfbackup-peer</Config>
+  <Config Name="Storage" Target="/mnt" Default="/mnt" Mode="rw,slave" Description="Where backups are stored (or files are read from): user shares (/mnt/user) and unassigned disks (/mnt/disks), same paths as on the host. The single array disks and pools are only used to move deleted files into the trash without copying; they are never shown. Use 'Allowed roots' to narrow what the controller may touch." Type="Path" Display="always" Required="true" Mask="false">/mnt</Config>
+  <Config Name="Allowed roots" Target="BFB_ROOTS" Default="/mnt" Mode="" Description="Comma-separated folders inside the container the controller may access. Narrow this (e.g. /mnt/user/Backups) to limit what the controller can see." Type="Variable" Display="advanced" Required="true" Mask="false">/mnt</Config>
+  <Config Name="Owner UID for written files" Target="BFB_UID" Default="99" Mode="" Description="99 = nobody on Unraid. Empty: leave as root." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+  <Config Name="Owner GID for written files" Target="BFB_GID" Default="100" Mode="" Description="100 = users on Unraid." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+  <Config Name="Transport" Target="BFB_TRANSPORT" Default="tls" Mode="" Description="tls: encrypted (default). plain: unencrypted, only for weak CPUs on fast links; the controller must allow it." Type="Variable" Display="advanced" Required="false" Mask="false">tls</Config>
+  <Config Name="Log level" Target="BFB_LOG_LEVEL" Default="info" Mode="" Description="debug, info, warn or error." Type="Variable" Display="advanced" Required="false" Mask="false">info</Config>
+</Container>
