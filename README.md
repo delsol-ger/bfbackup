@@ -1,11 +1,11 @@
 # BFBackup
 
-[![Backup jobs](public-release/screenshots/jobs-dark.png)](public-release/screenshots/)
-
 Incremental backup between Unraid servers (or any Linux host with Docker),
 stored as **plain files**: no repository, no archive, no special format. If
 BFBackup is gone tomorrow, your backups are still just folders you can open
 and copy.
+
+[![Backup jobs](public-release/screenshots/jobs-dark.png)](public-release/screenshots/)
 
 One **controller** container has the web UI, schedules and database.
 **Peers** on other servers connect to it with a token and send or receive
