@@ -1,7 +1,12 @@
 <?xml version="1.0"?>
-<Maintainer>
-  <Profile>BFBackup: incremental backups between Unraid (or any Linux) servers, stored as plain files.</Profile>
+<CommunityApplications>
+  <Profile>BFBackup: fast, incremental backups over the LAN for Unraid and other Linux Docker hosts. Backups are plain files and folders on the target (no repository, no archive format), so you can open and copy them without BFBackup.
+
+This repository ships two templates that use the same image (delsolger/bfbackup):
+- bfbackup-controller: web UI, schedules and database. Install it on exactly one server.
+- bfbackup-peer: install it on every other server that sends or keeps backups.
+
+Support, bug reports and feature requests: https://github.com/delsol-ger/bfbackup/issues</Profile>
   <Icon>https://raw.githubusercontent.com/delsol-ger/bfbackup/main/CI/icon/icon-512.png</Icon>
   <WebPage>https://github.com/delsol-ger/bfbackup</WebPage>
-  <Forum>https://github.com/delsol-ger/bfbackup/issues</Forum>
-</Maintainer>
+</CommunityApplications>
