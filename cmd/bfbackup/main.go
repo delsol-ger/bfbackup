@@ -30,7 +30,7 @@ import (
 
 // version is the release. Bump it for every new build; -ldflags
 // "-X main.version=..." (Docker build arg VERSION) overrides it.
-var version = "1.16.0"
+var version = "1.16.1"
 
 func main() {
 	os.Exit(run(os.Args[1:]))
@@ -64,6 +64,17 @@ func run(args []string) int {
 	if err := os.MkdirAll(cfg.HooksDir, 0o755); err != nil {
 		log.Warn("cannot create hooks folder", "dir", cfg.HooksDir, "err", err)
 	}
+	roots, notes, err := fsx.HostRoots(cfg.Roots)
+	if err != nil {
+		log.Error("cannot use roots", "err", err)
+		connLog.Printf("the peer does not start: %v", err)
+		return 1
+	}
+	for _, n := range notes {
+		log.Warn(n)
+		connLog.Printf("%s", n)
+	}
+	cfg.Roots = roots
 	files, err := fsx.New(cfg.Roots, fsx.Options{UID: cfg.UID, GID: cfg.GID})
 	if err != nil {
 		log.Error("cannot open roots", "err", err)

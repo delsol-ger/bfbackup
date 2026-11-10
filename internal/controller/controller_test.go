@@ -419,9 +419,51 @@ func TestSettingsAndMaintenance(t *testing.T) {
 	if err := w.c.SaveSettings(w.ctx, s, ClearSecrets{}); err == nil {
 		t.Fatal("bad event accepted")
 	}
-	rep := w.c.RunMaintenance(w.ctx)
+	rep := w.c.RunMaintenance(w.ctx, true)
 	if rep.DBSnapshot == "" || len(rep.Errors) != 0 {
 		t.Fatalf("maintenance %+v", rep)
+	}
+	// Scheduled maintenance right after: no snapshot due yet.
+	if rep := w.c.RunMaintenance(w.ctx, false); rep.DBSnapshot != "" {
+		t.Fatalf("snapshot taken although not due: %+v", rep)
+	}
+	s.DBBackupInterval = "hourly"
+	if err := w.c.SaveSettings(w.ctx, s, ClearSecrets{}); err == nil {
+		t.Fatal("bad snapshot interval accepted")
+	}
+}
+
+func TestSnapshotDue(t *testing.T) {
+	w := newWorld(t)
+	dir := w.c.dbBackupDir()
+	os.MkdirAll(dir, 0o700)
+	now := time.Date(2026, 3, 31, 4, 0, 0, 0, time.Local)
+	if !w.c.snapshotDue(DBBackupMonthly, now) {
+		t.Fatal("no snapshot yet: must be due")
+	}
+	put := func(ts time.Time) {
+		os.WriteFile(filepath.Join(dir, dbSnapPrefix+ts.Format(dbSnapLayout)+dbSnapSuffix), nil, 0o600)
+	}
+	cases := []struct {
+		last     time.Time
+		interval string
+		want     bool
+	}{
+		{now.AddDate(0, 0, -1).Add(3 * time.Hour), DBBackupDaily, true},
+		{now.Add(-time.Hour), DBBackupDaily, false},
+		{now.AddDate(0, 0, -6), DBBackupWeekly, false},
+		{now.AddDate(0, 0, -7).Add(5 * time.Hour), DBBackupWeekly, true},
+		{time.Date(2026, 3, 1, 4, 0, 0, 0, time.Local), DBBackupMonthly, false},
+		{time.Date(2026, 2, 28, 4, 0, 0, 0, time.Local), DBBackupMonthly, true},
+	}
+	for i, tc := range cases {
+		for _, n := range w.c.dbSnapshots() {
+			os.Remove(filepath.Join(dir, n))
+		}
+		put(tc.last)
+		if got := w.c.snapshotDue(tc.interval, now); got != tc.want {
+			t.Errorf("case %d: %s last %s: due=%v, want %v", i, tc.interval, tc.last, got, tc.want)
+		}
 	}
 	if err := w.c.TestNotification(w.ctx, ""); err != nil {
 		t.Fatal(err)

@@ -7,6 +7,8 @@ and copy.
 
 [![Backup jobs](public-release/screenshots/jobs-dark.png)](public-release/screenshots/)
 
+![Peers](public-release/screenshots/peers.png)
+
 One **controller** container has the web UI, schedules and database.
 **Peers** on other servers connect to it with a token and send or receive
 files. Targets can also be local folders and USB drives.
@@ -73,7 +75,6 @@ Everything is set in the web UI, except:
 ## Good to know
 
 * Meant for LAN or VPN: don't expose port 7700 to the internet.
-* Installing the phone app needs HTTPS (e.g. a reverse proxy in front of 7700).
 * Peer doesn't connect? See `/config/connection.log` on the peer.
 * Security problems: report privately via the
   [security policy](https://github.com/delsol-ger/bfbackup/security/policy).
@@ -88,6 +89,15 @@ make dev-up    # controller on http://localhost:7700 with ./testdata
 ```
 
 Code map: [docs/DESIGN.md](docs/DESIGN.md).
+
+## Android app
+
+BFBackup includes an Android app (PWA): open the web UI in Chrome on your
+phone → menu ⋮ → *Add to home screen* → *Install*. Needs HTTPS (e.g. a
+reverse proxy in front of port 7700). Works on iPhone too, via Safari →
+*Add to Home Screen*.
+
+![BFBackup on Android](public-release/screenshots/android.png)
 
 ## License
 

@@ -673,7 +673,7 @@ func (s *Server) handleTestNotification(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *Server) handleMaintenance(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, s.ctrl.RunMaintenance(r.Context()))
+	writeJSON(w, http.StatusOK, s.ctrl.RunMaintenance(r.Context(), true))
 }
 
 // handleTrash counts the trash of every job root, or with ?job= of one job.

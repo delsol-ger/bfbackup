@@ -3,6 +3,22 @@
 One entry per version, newest first. "Peers" says whether the peers must be
 updated too, or only the controller.
 
+## 1.16.1 (2026-11-10)
+
+- Settings → Retention and limits: the database snapshot can be taken
+  daily, weekly or monthly (default daily), next to the number of snapshots
+  to keep. A snapshot missed while the controller was down is taken at the
+  next maintenance; "Run maintenance now" always takes one.
+- Safety: a folder in BFB_ROOTS that is not mapped from the host is no
+  longer used as is (writes would land inside the container and be lost on
+  update). BFBackup uses the mapped folders below it instead and logs a
+  note; if there are none, it does not start.
+- Unraid templates: clearer texts for Storage and Allowed roots; Allowed
+  roots is shown by default. Log level and Initial admin password are no
+  longer in the templates (they still work as variables).
+
+Peers: yes (recommended, the safety check runs on peers too).
+
 ## 1.16.0 (2026-11-07)
 
 First public release (GitHub, Docker Hub, Unraid Community Applications).

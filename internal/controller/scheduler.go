@@ -198,7 +198,7 @@ func (c *Controller) maybeMaintenance(ctx context.Context) {
 		return
 	}
 	c.store.SetSetting(ctx, "last_maintenance", today)
-	c.RunMaintenance(ctx)
+	c.RunMaintenance(ctx, false)
 }
 
 // MaintenanceReport says what maintenance did.
@@ -210,8 +210,10 @@ type MaintenanceReport struct {
 	Errors             []string `json:"errors"`
 }
 
-// RunMaintenance purges old trash and history and snapshots the database.
-func (c *Controller) RunMaintenance(ctx context.Context) MaintenanceReport {
+// RunMaintenance purges old trash and history and snapshots the database
+// when a snapshot is due by the snapshot interval; force always takes one
+// (the "Run maintenance now" button).
+func (c *Controller) RunMaintenance(ctx context.Context, force bool) MaintenanceReport {
 	rep := MaintenanceReport{Errors: []string{}}
 	s, err := c.Settings(ctx)
 	if err != nil {
@@ -248,10 +250,12 @@ func (c *Controller) RunMaintenance(ctx context.Context) MaintenanceReport {
 		rep.Errors = append(rep.Errors, "log cleanup: "+err.Error())
 	}
 	c.store.PurgeSessions(ctx)
-	if p, err := c.SnapshotDB(ctx, s.DBBackupKeep); err != nil {
-		rep.Errors = append(rep.Errors, "database snapshot: "+err.Error())
-	} else {
-		rep.DBSnapshot = p
+	if force || c.snapshotDue(s.DBBackupInterval, now) {
+		if p, err := c.SnapshotDB(ctx, s.DBBackupKeep); err != nil {
+			rep.Errors = append(rep.Errors, "database snapshot: "+err.Error())
+		} else {
+			rep.DBSnapshot = p
+		}
 	}
 	c.log.Info("maintenance done", "trash_purged", rep.TrashBatchesPurged, "runs_pruned", rep.RunsPruned, "errors", len(rep.Errors))
 	c.logEvent(logbook.Entry{Level: logbook.LevelEvent, Kind: logbook.KindSystem, Node: model.LocalNodeID,
@@ -262,24 +266,78 @@ func (c *Controller) RunMaintenance(ctx context.Context) MaintenanceReport {
 	return rep
 }
 
-// SnapshotDB writes db-backups/bfbackup-<date>.db and keeps the newest keep files.
-func (c *Controller) SnapshotDB(ctx context.Context, keep int) (string, error) {
-	dir := filepath.Join(c.cfg.DataDir, "db-backups")
-	if err := os.MkdirAll(dir, 0o700); err != nil {
-		return "", err
-	}
-	p := filepath.Join(dir, "bfbackup-"+c.cfg.Now().Format("20060102-150405")+".db")
-	if err := c.store.Snapshot(ctx, p); err != nil {
-		return "", err
-	}
-	entries, _ := os.ReadDir(dir)
+// Database snapshot intervals.
+const (
+	DBBackupDaily   = "daily"
+	DBBackupWeekly  = "weekly"
+	DBBackupMonthly = "monthly"
+)
+
+var dbBackupIntervals = map[string]bool{DBBackupDaily: true, DBBackupWeekly: true, DBBackupMonthly: true}
+
+const (
+	dbSnapPrefix = "bfbackup-"
+	dbSnapSuffix = ".db"
+	dbSnapLayout = "20060102-150405"
+)
+
+func (c *Controller) dbBackupDir() string { return filepath.Join(c.cfg.DataDir, "db-backups") }
+
+// dbSnapshots lists the snapshot file names, oldest first.
+func (c *Controller) dbSnapshots() []string {
+	entries, _ := os.ReadDir(c.dbBackupDir())
 	var snaps []string
 	for _, e := range entries {
-		if strings.HasPrefix(e.Name(), "bfbackup-") && strings.HasSuffix(e.Name(), ".db") {
+		if strings.HasPrefix(e.Name(), dbSnapPrefix) && strings.HasSuffix(e.Name(), dbSnapSuffix) {
 			snaps = append(snaps, e.Name())
 		}
 	}
 	sort.Strings(snaps)
+	return snaps
+}
+
+// snapshotDue says whether the newest snapshot is at least one interval
+// old, by calendar day: weekly = 7 days, monthly = one calendar month. With
+// no snapshot yet one is always due, so a missed day is caught up the next.
+func (c *Controller) snapshotDue(interval string, now time.Time) bool {
+	snaps := c.dbSnapshots()
+	if len(snaps) == 0 {
+		return true
+	}
+	name := snaps[len(snaps)-1]
+	last, err := time.ParseInLocation(dbSnapLayout, strings.TrimSuffix(strings.TrimPrefix(name, dbSnapPrefix), dbSnapSuffix), now.Location())
+	if err != nil {
+		return true
+	}
+	day := func(t time.Time) time.Time { y, m, d := t.Date(); return time.Date(y, m, d, 0, 0, 0, 0, t.Location()) }
+	today := day(now)
+	var limit time.Time
+	switch interval {
+	case DBBackupWeekly:
+		limit = today.AddDate(0, 0, -7)
+	case DBBackupMonthly:
+		// Same day last month, or its last day (31 Mar → 28/29 Feb).
+		limit = today.AddDate(0, -1, 0)
+		if limit.Day() != today.Day() {
+			limit = limit.AddDate(0, 0, -limit.Day())
+		}
+	default:
+		limit = today.AddDate(0, 0, -1)
+	}
+	return !day(last).After(limit)
+}
+
+// SnapshotDB writes db-backups/bfbackup-<date>.db and keeps the newest keep files.
+func (c *Controller) SnapshotDB(ctx context.Context, keep int) (string, error) {
+	dir := c.dbBackupDir()
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		return "", err
+	}
+	p := filepath.Join(dir, dbSnapPrefix+c.cfg.Now().Format(dbSnapLayout)+dbSnapSuffix)
+	if err := c.store.Snapshot(ctx, p); err != nil {
+		return "", err
+	}
+	snaps := c.dbSnapshots()
 	for len(snaps) > keep {
 		os.Remove(filepath.Join(dir, snaps[0]))
 		snaps = snaps[1:]

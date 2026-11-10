@@ -342,7 +342,10 @@ type Settings struct {
 	MaxParallelRuns    int      `json:"max_parallel_runs"`
 	LowSpacePct        int      `json:"low_space_pct"`
 	DBBackupKeep       int      `json:"db_backup_keep"`
-	MaintenanceHour    int      `json:"maintenance_hour"`
+	// DBBackupInterval is how often maintenance snapshots the database:
+	// DBBackupDaily, DBBackupWeekly or DBBackupMonthly.
+	DBBackupInterval string `json:"db_backup_interval"`
+	MaintenanceHour  int    `json:"maintenance_hour"`
 	// StallMinutes stops a run that makes no progress this long; 0 = never.
 	StallMinutes int `json:"stall_minutes"`
 	// Activity log: level 1 errors, 2 events, 3 every file.
@@ -392,6 +395,7 @@ var settingDefaults = map[string]string{
 	"max_parallel_runs":    "2",
 	"low_space_pct":        "10",
 	"db_backup_keep":       "7",
+	"db_backup_interval":   DBBackupDaily,
 	"maintenance_hour":     "4",
 	"email_port":           strconv.Itoa(notify.DefaultSMTPPort),
 	"stall_minutes":        strconv.Itoa(defaultStallMinutes),
@@ -451,6 +455,7 @@ func (c *Controller) Settings(ctx context.Context) (Settings, error) {
 		MaxParallelRuns:    num("max_parallel_runs"),
 		LowSpacePct:        num("low_space_pct"),
 		DBBackupKeep:       num("db_backup_keep"),
+		DBBackupInterval:   get("db_backup_interval"),
 		MaintenanceHour:    num("maintenance_hour"),
 		StallMinutes:       num("stall_minutes"),
 		LogLevel:           num("log_level"),
@@ -466,6 +471,9 @@ func (c *Controller) Settings(ctx context.Context) (Settings, error) {
 	}
 	if !dateFormats[s.DateFormat] {
 		s.DateFormat = DateISO
+	}
+	if !dbBackupIntervals[s.DBBackupInterval] {
+		s.DBBackupInterval = DBBackupDaily
 	}
 	if g, ok := all["guards"]; ok {
 		// Unknown or missing fields keep their defaults.
@@ -592,6 +600,12 @@ func (c *Controller) SaveSettings(ctx context.Context, s Settings, clear ClearSe
 	if err := validateDisplay(s.Theme, s.DateFormat); err != nil {
 		return err
 	}
+	if s.DBBackupInterval == "" {
+		s.DBBackupInterval = DBBackupDaily
+	}
+	if !dbBackupIntervals[s.DBBackupInterval] {
+		return fmt.Errorf("database snapshot interval must be %s, %s or %s", DBBackupDaily, DBBackupWeekly, DBBackupMonthly)
+	}
 	guards, _ := json.Marshal(s.Guards)
 	features, _ := json.Marshal(s.Features)
 	kv := map[string]string{
@@ -607,6 +621,7 @@ func (c *Controller) SaveSettings(ctx context.Context, s Settings, clear ClearSe
 		"max_parallel_runs":    strconv.Itoa(s.MaxParallelRuns),
 		"low_space_pct":        strconv.Itoa(s.LowSpacePct),
 		"db_backup_keep":       strconv.Itoa(s.DBBackupKeep),
+		"db_backup_interval":   s.DBBackupInterval,
 		"maintenance_hour":     strconv.Itoa(s.MaintenanceHour),
 		"stall_minutes":        strconv.Itoa(s.StallMinutes),
 		"log_level":            strconv.Itoa(s.LogLevel),
